@@ -8,11 +8,13 @@ using System.Linq;
 public class GameManager : MonoBehaviour
 {
     public Question[] questions;
+    public Question[] allTrailQuestions;
     public int totalQuestions;
 
     private Question previousQuestion;
     private Question currentQuestion;
     private int randQuestionIndex;
+    public int globalIndex = 0;
 
     [SerializeField]
     private int numQuestions;
@@ -25,109 +27,132 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-
-
-        StartFlankerTask();
+        arrows.SetActive(false);
+        allTrailQuestions = new Question[10];
+        LoadTrails();
+        foreach (Question question in allTrailQuestions)
+        {
+            Debug.Log(question.flankerArrows);
+        }
+        //StartFlankerTask();
 
     }
 
-    //public void startGame()
+    
+
+    //public void StartFlankerTask()
     //{
-    //    string name = playerName.GetComponent<Text>().text;
-    //    if (name.Length <= 0)
-    //    {
-    //        PlayerPrefs.SetString("PlayerName", "NoName");
-    //        SceneManager.LoadScene("Flanker Main");
 
-    //        StartFlankerTask();
-
-    //    }
-    //    else
-    //    {
-    //        PlayerPrefs.SetString("PlayerName", name);
-    //        SceneManager.LoadScene("Flanker Main");
-    //        StartFlankerTask();
-
-
-    //    }
-
-
-    //}
-
-    public void StartFlankerTask()
-    {
-
-        randQuestionIndex = Random.Range(0, questions.Length);
-        int currentlevel = PlayerPrefs.GetInt("PlayerLevel");
+    //    randQuestionIndex = Random.Range(0, questions.Length);
+    //    int currentlevel = PlayerPrefs.GetInt("PlayerLevel");
         
-        currentQuestion = questions[randQuestionIndex];
+    //    currentQuestion = questions[randQuestionIndex];
 
-        Debug.Log(currentQuestion.flankerArrows);
-        Debug.Log(currentlevel.ToString());
+    //    Debug.Log(currentQuestion.flankerArrows);
+    //    Debug.Log(currentlevel.ToString());
 
-        if (previousQuestion == null)
+    //    if (previousQuestion == null)
+    //    {
+    //        arrows.GetComponent<Text>().text = currentQuestion.flankerArrows;
+
+    //    } else {
+    //        randQuestionIndex = Random.Range(0, questions.Length);
+    //        currentQuestion = questions[randQuestionIndex];
+
+    //        arrows.GetComponent<Text>().text = currentQuestion.flankerArrows;
+    //    }
+    //    currentlevel++;
+    //    PlayerPrefs.SetInt("PlayerLevel", currentlevel);
+    //    previousQuestion = currentQuestion;
+    //}
+    void LoadTrails()
+    {
+        for (int i = 0; i < allTrailQuestions.Length; i++)
         {
-            arrows.GetComponent<Text>().text = currentQuestion.flankerArrows;
-
-        } else {
             randQuestionIndex = Random.Range(0, questions.Length);
             currentQuestion = questions[randQuestionIndex];
 
-            arrows.GetComponent<Text>().text = currentQuestion.flankerArrows;
-        }
-        currentlevel++;
-        PlayerPrefs.SetInt("PlayerLevel", currentlevel);
-        previousQuestion = currentQuestion;
-    }
+            //Debug.Log(currentQuestion.flankerArrows);
+            //Debug.Log(currentlevel.ToString());
 
-    IEnumerator TransitionToNextQuestion()
-    {
-        int currentLevel = PlayerPrefs.GetInt("PlayerLevel");
-        yield return new WaitForSeconds(questionTransitionTime);
-        if (currentLevel > totalQuestions)
-        {
-            GameObject[] buttons = GameObject.FindGameObjectsWithTag("button");
-
-            foreach (GameObject obj in buttons)
+            if (previousQuestion == null)
             {
-                obj.active = false;
+                allTrailQuestions[i] = currentQuestion;
             }
+            else
+            {
+                while (previousQuestion.flankerArrows == currentQuestion.flankerArrows)
+                {
+                    randQuestionIndex = Random.Range(0, questions.Length);
+                    currentQuestion = questions[randQuestionIndex];
 
-            string playerScore = PlayerPrefs.GetInt("PlayerScore").ToString();
-            arrows.GetComponent<Text>().text = "You scored " + playerScore;
+                }
+                allTrailQuestions[i] = currentQuestion;
 
-        } else {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-
+            }
+            previousQuestion = currentQuestion;
         }
+
     }
+    public void startTrail()
+    {
+
+        arrows.SetActive(true);
+
+        Question trail = allTrailQuestions[globalIndex];
+        StartCoroutine(displayTrail(trail.flankerArrows));
+        globalIndex++;
+    }
+    IEnumerator displayTrail(string trail)
+    {
+        arrows.GetComponent<Text>().text = "+";
+        yield return new WaitForSeconds(.5f);
+        arrows.GetComponent<Text>().text = trail;
+
+    }
+    //IEnumerator TransitionToNextQuestion()
+    //{
+    //    int currentLevel = PlayerPrefs.GetInt("PlayerLevel");
+    //    yield return new WaitForSeconds(questionTransitionTime);
+    //    if (currentLevel > totalQuestions)
+    //    {
+    //        GameObject[] buttons = GameObject.FindGameObjectsWithTag("button");
+
+    //        foreach (GameObject obj in buttons)
+    //        {
+    //            obj.active = false;
+    //        }
+
+    //        string playerScore = PlayerPrefs.GetInt("PlayerScore").ToString();
+    //        arrows.GetComponent<Text>().text = "You scored " + playerScore;
+
+    //    } else {
+    //        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+
+    //    }
+    //}
 
     
     public void userSelectRight()
     {
-        if (!currentQuestion.isLeft)
+        if (!allTrailQuestions[globalIndex].isLeft)
         {
             Debug.Log("Correct");
             answerCorrect();
-
         } else {
             Debug.Log("Incorrect");
         }
-        StartCoroutine(TransitionToNextQuestion());
     }
     public void userSelectLeft()
     {
-        if (currentQuestion.isLeft)
+        if (allTrailQuestions[globalIndex].isLeft)
         {
             Debug.Log("Correct");
             answerCorrect();
-
         }
         else {
             Debug.Log("Incorrect");
-
         }
-        StartCoroutine(TransitionToNextQuestion());
     }
 
     public void answerCorrect()
