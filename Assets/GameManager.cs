@@ -96,7 +96,6 @@ public class GameManager : MonoBehaviour
     }
     public void startTrail()
     {
-
         arrows.SetActive(true);
 
         Question trail = allTrailQuestions[globalIndex];
@@ -135,6 +134,8 @@ public class GameManager : MonoBehaviour
     
     public void userSelectRight()
     {
+        GameObject[] buttons = GameObject.FindGameObjectsWithTag("button");
+
         if (!allTrailQuestions[globalIndex].isLeft)
         {
             Debug.Log("Correct");
@@ -142,9 +143,16 @@ public class GameManager : MonoBehaviour
         } else {
             Debug.Log("Incorrect");
         }
+
+        foreach (GameObject obj in buttons)
+        {
+            obj.active = false;
+        }
     }
     public void userSelectLeft()
     {
+        GameObject[] buttons = GameObject.FindGameObjectsWithTag("button");
+
         if (allTrailQuestions[globalIndex].isLeft)
         {
             Debug.Log("Correct");
@@ -153,8 +161,13 @@ public class GameManager : MonoBehaviour
         else {
             Debug.Log("Incorrect");
         }
-    }
 
+        foreach (GameObject obj in buttons)
+        {
+            obj.active = false;
+        }
+    }
+    
     public void answerCorrect()
     {
         int score = PlayerPrefs.GetInt("PlayerScore");
